@@ -1,0 +1,40 @@
+<h1>Edit User: <%= @user.name %></h1>
+
+<div class="bg-white p-6 rounded-lg shadow">
+  <%= form_for @user, url: admin_user_path(@user), method: :patch, multipart: true do |f| %>
+    <div class="mb-4">
+      <%= f.label :name, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :name, class: "w-full p-2 border border-gray-300 rounded-md" %>
+    </div>
+
+    <div class="mb-4">
+      <%= f.label :email, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.email_field :email, class: "w-full p-2 border border-gray-300 rounded-md" %>
+    </div>
+
+    <div class="mb-4">
+      <%= f.label :bio, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_area :bio, rows: 3, class: "w-full p-2 border border-gray-300 rounded-md" %>
+    </div>
+
+    <div class="mb-4">
+      <%= f.label :favorite_languages, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :favorite_languages, class: "w-full p-2 border border-gray-300 rounded-md" %>
+    </div>
+
+    <div class="mb-4">
+      <%= f.label :admin, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.check_box :admin %>
+    </div>
+
+    <div class="mb-4">
+      <%= f.label :avatar, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.file_field :avatar, accept: "image/png,image/jpeg,image/gif,image/webp" %>
+    </div>
+
+    <div class="flex space-x-4">
+      <%= f.submit "Update User", class: "bg-blue-500 text-white px-4 py-2 rounded" %>
+      <%= link_to 'Cancel', admin_user_path(@user), class: "bg-gray-500 text-white px-4 py-2 rounded" %>
+    </div>
+  <% end %>
+</div>

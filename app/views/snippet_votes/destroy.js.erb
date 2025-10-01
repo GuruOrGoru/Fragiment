@@ -1,0 +1,21 @@
+// Update snippet vote buttons
+document.querySelectorAll('[data-snippet-id="<%= @snippet.id %>"]').forEach(function(container) {
+  var workingBtn = container.querySelector('.fa-check-circle');
+  var brokenBtn = container.querySelector('.fa-times-circle');
+
+  if (workingBtn) {
+    workingBtn = workingBtn.closest('button, a');
+    workingBtn.innerHTML = '<i class="far fa-check-circle"></i> Working (<%= @snippet.snippet_votes.where(vote_type: 'working').count %>)';
+    workingBtn.className = 'snippet-vote-btn text-gray-500 hover:text-green-500 text-sm';
+    workingBtn.setAttribute('data-url', '<%= snippet_vote_working_path(@snippet) %>');
+    workingBtn.setAttribute('data-method', 'post');
+  }
+
+  if (brokenBtn) {
+    brokenBtn = brokenBtn.closest('button, a');
+    brokenBtn.innerHTML = '<i class="far fa-times-circle"></i> Broken (<%= @snippet.snippet_votes.where(vote_type: 'broken').count %>)';
+    brokenBtn.className = 'snippet-vote-btn text-gray-500 hover:text-red-500 text-sm';
+    brokenBtn.setAttribute('data-url', '<%= snippet_vote_broken_path(@snippet) %>');
+    brokenBtn.setAttribute('data-method', 'post');
+  }
+});

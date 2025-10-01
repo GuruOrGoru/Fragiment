@@ -1,0 +1,339 @@
+<div class="max-w-4xl mx-auto">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold mb-2"><%= @snippet.title %></h1>
+    <div class="flex items-center space-x-3 mb-4">
+       <% if @snippet.user.avatar.attached? %>
+         <% if @snippet.user.avatar.content_type == 'image/svg+xml' %>
+           <%= link_to user_path(@snippet.user), class: "flex-shrink-0" do %>
+             <div class="w-12 h-12 rounded-full overflow-hidden">
+               <object data="<%= url_for(@snippet.user.avatar) %>" type="image/svg+xml" class="w-full h-full"></object>
+             </div>
+           <% end %>
+         <% else %>
+           <%= link_to user_path(@snippet.user), class: "flex-shrink-0" do %>
+             <%= image_tag @snippet.user.avatar.variant(:thumb), class: "w-12 h-12 rounded-full object-cover" %>
+           <% end %>
+         <% end %>
+      <% else %>
+        <%= link_to user_path(@snippet.user), class: "flex-shrink-0" do %>
+          <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+            <span class="text-lg font-medium text-gray-700"><%= @snippet.user.name[0].upcase %></span>
+          </div>
+        <% end %>
+      <% end %>
+      <div>
+        <p class="text-gray-600">By <%= link_to @snippet.user.name, user_path(@snippet.user), class: "hover:text-blue-600 font-medium" %> • <%= @snippet.language %></p>
+        <% if @snippet.user.bio.present? %>
+          <p class="text-sm text-gray-500 mt-1"><%= @snippet.user.bio.truncate(100) %></p>
+        <% end %>
+      </div>
+    </div>
+     <% if @snippet.tags.any? %>
+       <div class="flex flex-wrap gap-2 mb-4">
+         <% @snippet.tags.each do |tag| %>
+           <span class="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full"><%= tag.name %></span>
+         <% end %>
+       </div>
+     <% end %>
+      <% if @snippet.description.present? %>
+        <div class="prose mb-4 description-content"><%= @snippet.description %></div>
+      <% end %>
+      <% if @snippet.all_images.any? %>
+        <div class="mb-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+          <% @snippet.all_images.each do |image| %>
+            <% if image.content_type == 'image/svg+xml' %>
+              <%= image_tag image, class: "w-full h-32 object-contain rounded cursor-pointer", onclick: "openImageModal('#{image.url}')" %>
+            <% else %>
+              <%= image_tag image.variant(:thumb), class: "w-full h-32 object-cover rounded cursor-pointer", onclick: "openImageModal('#{image.url}')" %>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+     <% if @snippet.video.attached? %>
+       <div class="mb-4 bg-gray-100 rounded-lg p-4">
+         <video controls class="w-full rounded-lg shadow-md" preload="metadata">
+           <%= video_tag @snippet.video, controls: true, preload: "metadata" %>
+         </video>
+         <p class="text-sm text-gray-600 mt-2">Video: <%= @snippet.video.filename %></p>
+       </div>
+     <% end %>
+  </div>
+
+  <div class="mb-8">
+    <div class="bg-gray-800 rounded-t-lg p-3 flex items-center">
+      <div class="flex space-x-2">
+        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+      </div>
+      <div class="flex-1 text-center text-white text-sm"><%= @snippet.language %></div>
+    </div>
+     <div class="bg-gray-900 p-4 rounded-b-lg overflow-x-auto relative">
+       <button class="absolute top-2 right-2 text-gray-400 hover:text-white copy-btn" data-code="<%= @snippet.code %>" title="Copy code">
+         <i class="fas fa-copy"></i>
+       </button>
+       <pre class="syntax-highlight"><code><%= format_code(@snippet.code, @snippet.language).html_safe %></code></pre>
+     </div>
+  </div>
+
+   <div class="mb-8">
+       <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-4">
+            <%= render partial: "snippets/bookmark_button", locals: { snippet: @snippet } %>
+            <%= render partial: "snippets/snippet_vote_buttons", locals: { snippet: @snippet } %>
+              <span class="text-gray-500 suggestion-count"><i class="far fa-lightbulb"></i> Suggestions (<%= @snippet.suggestions.count %>)</span>
+            <button class="text-gray-500 hover:text-blue-500 share-btn" data-url="<%= request.original_url %>">
+              <i class="fas fa-share"></i> Share
+            </button>
+          </div>
+       <% if user_signed_in? && @snippet.user == current_user %>
+         <div>
+           <%= link_to "Edit", edit_snippet_path(@snippet), class: "text-blue-500 mr-4" %>
+           <%= button_to "Delete", @snippet, method: :delete, data: { confirm: "Are you sure?" }, class: "text-red-500" %>
+         </div>
+       <% end %>
+     </div>
+   </div>
+
+   <div class="mb-8">
+     <h2 class="text-2xl font-bold mb-4">Suggestions</h2>
+     <% if user_signed_in? %>
+        <%= form_for [@snippet, @suggestion], html: { class: "suggestion-form-ajax" } do |f| %>
+          <div class="mb-4">
+            <%= f.select :suggestion_type, options_for_select(Suggestion.suggestion_types.map { |k, v| [k.humanize, k] }, @suggestion.suggestion_type || 'feature_request'), {}, class: "w-full p-2 border rounded mb-2" %>
+            <%= f.text_area :content, placeholder: "Suggest a feature, report a bug, or propose an improvement...", class: "w-full p-2 border rounded", rows: 3 %>
+          </div>
+          <%= f.submit "Submit Suggestion", class: "bg-blue-500 text-white px-4 py-2 rounded" %>
+        <% end %>
+     <% end %>
+
+     <div class="space-y-4 suggestions-section" data-snippet-id="<%= @snippet.id %>">
+       <% @suggestions.each do |suggestion| %>
+         <%= render partial: 'suggestions/suggestion', locals: { suggestion: suggestion, snippet: @snippet } %>
+       <% end %>
+     </div>
+   </div>
+</div>
+
+<!-- Image Modal -->
+<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center" onclick="closeImageModal()">
+  <div class="max-w-4xl max-h-full p-4">
+    <img id="modal-image" class="max-w-full max-h-full object-contain" />
+    <button class="absolute top-4 right-4 text-white text-2xl" onclick="closeImageModal()">&times;</button>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Use event delegation for reply buttons
+    document.addEventListener('click', function(event) {
+      if (event.target.classList.contains('reply-btn') || event.target.closest('.reply-btn')) {
+        const btn = event.target.classList.contains('reply-btn') ? event.target : event.target.closest('.reply-btn');
+        const suggestionId = btn.dataset.suggestionId;
+        const form = document.querySelector(`.reply-form[data-suggestion-id="${suggestionId}"]`);
+        if (form) {
+          form.classList.toggle('hidden');
+        }
+      }
+    });
+
+    // Handle form submissions
+    document.addEventListener('submit', function(event) {
+      const form = event.target;
+      if (form.classList.contains('suggestion-form-ajax') || form.classList.contains('reply-form-ajax')) {
+        event.preventDefault();
+
+        const formData = new FormData(form);
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // Create URL-encoded data
+        const params = new URLSearchParams();
+        for (let [key, value] of formData.entries()) {
+          params.append(key, value);
+        }
+        params.append('authenticity_token', csrfToken);
+
+        fetch(form.action, {
+          method: 'POST',
+          body: params,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-Token': csrfToken,
+            'Accept': 'text/javascript, application/javascript, application/ecmascript, application/x-ecmascript'
+          }
+        })
+        .then(response => response.text())
+        .then(script => {
+          // Execute the JavaScript response
+          eval(script);
+
+          // Clear the form and hide reply forms
+          form.querySelector('textarea').value = '';
+          if (form.classList.contains('reply-form-ajax')) {
+            form.classList.add('hidden');
+          }
+        })
+        .catch(error => {
+          console.error('Error submitting form:', error);
+        });
+      }
+    });
+
+    // Handle share button
+    document.querySelectorAll('.share-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const url = this.dataset.url;
+        navigator.clipboard.writeText(url).then(function() {
+          // Show temporary feedback
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+          btn.classList.add('text-green-500');
+          setTimeout(function() {
+            btn.innerHTML = originalText;
+            btn.classList.remove('text-green-500');
+          }, 2000);
+        });
+      });
+    });
+
+    // Handle copy button
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const code = this.dataset.code;
+        navigator.clipboard.writeText(code).then(function() {
+          // Show temporary feedback
+          const originalHTML = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i>';
+          btn.classList.add('text-green-500');
+          setTimeout(function() {
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('text-green-500');
+          }, 2000);
+        });
+      });
+    });
+
+    // Handle like buttons
+    document.addEventListener('click', function(event) {
+      if (event.target.classList.contains('like-btn') || event.target.closest('.like-btn')) {
+        const btn = event.target.classList.contains('like-btn') ? event.target : event.target.closest('.like-btn');
+        event.preventDefault();
+        const url = btn.dataset.url;
+        const method = btn.dataset.method;
+        const snippetId = btn.dataset.snippetId;
+
+        fetch(url, {
+          method: method,
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'text/javascript, application/javascript'
+          }
+        })
+        .then(response => response.text())
+        .then(script => {
+          // Execute the JavaScript response
+          eval(script);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      }
+    });
+
+    // Handle suggestion vote buttons
+    document.addEventListener('click', function(event) {
+      if (event.target.classList.contains('suggestion-vote-btn') || event.target.closest('.suggestion-vote-btn')) {
+        const btn = event.target.classList.contains('suggestion-vote-btn') ? event.target : event.target.closest('.suggestion-vote-btn');
+        event.preventDefault();
+        const url = btn.dataset.url;
+        const method = btn.dataset.method;
+        const suggestionId = btn.dataset.suggestionId;
+
+        fetch(url, {
+          method: method,
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'text/javascript, application/javascript'
+          }
+        })
+        .then(response => response.text())
+        .then(script => {
+          // Execute the JavaScript response
+          eval(script);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      }
+    });
+
+    // Handle snippet vote buttons
+    document.addEventListener('click', function(event) {
+      if (event.target.classList.contains('snippet-vote-btn') || event.target.closest('.snippet-vote-btn')) {
+        const btn = event.target.classList.contains('snippet-vote-btn') ? event.target : event.target.closest('.snippet-vote-btn');
+        event.preventDefault();
+        const url = btn.dataset.url;
+        const method = btn.dataset.method;
+        const snippetId = btn.dataset.snippetId;
+
+        fetch(url, {
+          method: method,
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'text/javascript, application/javascript'
+          }
+        })
+        .then(response => response.text())
+        .then(script => {
+          // Execute the JavaScript response
+          eval(script);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      }
+    });
+
+    // Handle delete suggestion buttons
+    document.addEventListener('click', function(event) {
+      if (event.target.classList.contains('delete-suggestion-btn') || event.target.closest('.delete-suggestion-btn')) {
+        const btn = event.target.classList.contains('delete-suggestion-btn') ? event.target : event.target.closest('.delete-suggestion-btn');
+        event.preventDefault();
+        if (confirm(btn.dataset.confirm || 'Are you sure?')) {
+          const url = btn.dataset.url;
+          const method = btn.dataset.method;
+
+          fetch(url, {
+            method: method,
+            headers: {
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+              'Accept': 'text/javascript, application/javascript'
+            }
+          })
+          .then(response => response.text())
+          .then(script => {
+            // Execute the JavaScript response
+            eval(script);
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+        }
+      }
+    });
+
+    // Image modal functions
+    window.openImageModal = function(imageUrl) {
+      document.getElementById('modal-image').src = imageUrl;
+      document.getElementById('image-modal').classList.remove('hidden');
+    };
+
+    window.closeImageModal = function() {
+      document.getElementById('image-modal').classList.add('hidden');
+    };
+  });
+</script>
+
+<script type="module">
+  import "./channels/snippet_channel"
+</script>

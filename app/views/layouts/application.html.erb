@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Code Share" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+    <!-- Ace Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-emmet.js"></script>
+
+    <!-- Markdown Editor and Parser -->
+    <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+    <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+     <style>
+       /* Monaco Editor customizations */
+       .monaco-editor .margin {
+         width: 35px !important; /* Reduce line number panel width */
+       }
+       .monaco-editor .margin-view-overlays {
+         width: 35px !important;
+       }
+       .monaco-editor .line-numbers {
+         width: 30px !important;
+         font-size: 10px !important;
+         padding-right: 5px !important;
+       }
+       .monaco-editor .current-line-margin {
+         width: 35px !important;
+       }
+       /* Make the editor container more compact */
+       #code-editor-container {
+         font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+       }
+
+        /* Syntax highlighting styles - matching Ace Monokai theme */
+        .syntax-highlight {
+          color: #f8f8f2 !important;
+          background: #272822 !important;
+          font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+          font-size: 14px !important;
+          line-height: 1.4 !important;
+          margin: 0 !important;
+          padding: 1rem !important;
+          overflow-x: auto !important;
+        }
+
+        .syntax-highlight .c { color: #75715e !important; } /* Comment */
+        .syntax-highlight .cm { color: #75715e !important; } /* Comment.Multiline */
+        .syntax-highlight .c1 { color: #75715e !important; } /* Comment.Single */
+        .syntax-highlight .k { color: #f92672 !important; } /* Keyword */
+        .syntax-highlight .kc { color: #f92672 !important; } /* Keyword.Constant */
+        .syntax-highlight .kd { color: #f92672 !important; } /* Keyword.Declaration */
+        .syntax-highlight .kn { color: #f92672 !important; } /* Keyword.Namespace */
+        .syntax-highlight .kp { color: #f92672 !important; } /* Keyword.Pseudo */
+        .syntax-highlight .kr { color: #f92672 !important; } /* Keyword.Reserved */
+        .syntax-highlight .kt { color: #f92672 !important; } /* Keyword.Type */
+        .syntax-highlight .n { color: #f8f8f2 !important; } /* Name */
+        .syntax-highlight .na { color: #a6e22e !important; } /* Name.Attribute */
+        .syntax-highlight .nb { color: #a6e22e !important; } /* Name.Builtin */
+        .syntax-highlight .nc { color: #a6e22e !important; } /* Name.Class */
+        .syntax-highlight .nf { color: #a6e22e !important; } /* Name.Function */
+        .syntax-highlight .nn { color: #a6e22e !important; } /* Name.Namespace */
+        .syntax-highlight .nt { color: #f92672 !important; } /* Name.Tag */
+        .syntax-highlight .nv { color: #a6e22e !important; } /* Name.Variable */
+        .syntax-highlight .s { color: #e6db74 !important; } /* Literal.String */
+        .syntax-highlight .s1 { color: #e6db74 !important; } /* Literal.String.Single */
+        .syntax-highlight .s2 { color: #e6db74 !important; } /* Literal.String.Double */
+        .syntax-highlight .sb { color: #e6db74 !important; } /* Literal.String.Backtick */
+        .syntax-highlight .sc { color: #e6db74 !important; } /* Literal.String.Char */
+        .syntax-highlight .sd { color: #e6db74 !important; } /* Literal.String.Doc */
+        .syntax-highlight .se { color: #e6db74 !important; } /* Literal.String.Escape */
+        .syntax-highlight .sh { color: #e6db74 !important; } /* Literal.String.Heredoc */
+        .syntax-highlight .si { color: #e6db74 !important; } /* Literal.String.Interpol */
+        .syntax-highlight .sx { color: #e6db74 !important; } /* Literal.String.Other */
+        .syntax-highlight .sr { color: #e6db74 !important; } /* Literal.String.Regex */
+        .syntax-highlight .ss { color: #e6db74 !important; } /* Literal.String.Symbol */
+        .syntax-highlight .m { color: #ae81ff !important; } /* Literal.Number */
+        .syntax-highlight .mf { color: #ae81ff !important; } /* Literal.Number.Float */
+        .syntax-highlight .mh { color: #ae81ff !important; } /* Literal.Number.Hex */
+        .syntax-highlight .mi { color: #ae81ff !important; } /* Literal.Number.Integer */
+        .syntax-highlight .mo { color: #ae81ff !important; } /* Literal.Number.Oct */
+        .syntax-highlight .o { color: #f92672 !important; } /* Operator */
+        .syntax-highlight .ow { color: #f92672 !important; } /* Operator.Word */
+
+        /* Markdown prose styles */
+        .prose {
+          color: #374151;
+          max-width: none;
+        }
+        .prose h1 { font-size: 2em; font-weight: bold; margin: 0.67em 0; }
+        .prose h2 { font-size: 1.5em; font-weight: bold; margin: 0.83em 0; }
+        .prose h3 { font-size: 1.17em; font-weight: bold; margin: 1em 0; }
+        .prose p { margin: 1em 0; }
+        .prose ul, .prose ol { margin: 1em 0; padding-left: 2em; }
+        .prose li { margin: 0.5em 0; }
+        .prose code { background: #f3f4f6; padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace; }
+        .prose pre { background: #f3f4f6; padding: 1em; border-radius: 3px; overflow-x: auto; }
+        .prose pre code { background: none; padding: 0; }
+        .prose blockquote { border-left: 4px solid #e5e7eb; padding-left: 1em; margin: 1em 0; color: #6b7280; }
+        .prose a { color: #3b82f6; text-decoration: underline; }
+        .prose img { max-width: 100%; height: auto; }
+     </style>
+    <script>
+      // Global function to initialize Ace Editor
+      window.initAceEditor = function(containerId, hiddenInputId, initialValue, language) {
+        // Language mapping for Ace Editor
+        const modeMap = {
+          'c++': 'c_cpp',
+          'c#': 'csharp',
+          'objective-c': 'objective_c',
+          'html': 'html',
+          'css': 'css',
+          'javascript': 'javascript',
+          'typescript': 'typescript',
+          'python': 'python',
+          'java': 'java',
+          'ruby': 'ruby',
+          'php': 'php',
+          'go': 'golang',
+          'rust': 'rust',
+          'sql': 'sql',
+          'shell': 'sh',
+          'bash': 'sh',
+          'powershell': 'powershell',
+          'yaml': 'yaml',
+          'json': 'json',
+          'xml': 'xml',
+          'markdown': 'markdown',
+          'dockerfile': 'dockerfile'
+        };
+
+        function getAceMode(language) {
+          return 'ace/mode/' + (modeMap[language.toLowerCase()] || 'text');
+        }
+
+        const aceMode = getAceMode(language);
+
+        // Create Ace Editor
+        window.codeEditor = ace.edit(containerId);
+        window.codeEditor.setTheme('ace/theme/monokai');
+        window.codeEditor.session.setMode(aceMode);
+        window.codeEditor.setFontSize(12);
+        window.codeEditor.setShowPrintMargin(false);
+        window.codeEditor.setOptions({
+          enableBasicAutocompletion: true,
+          enableSnippets: true,
+          enableLiveAutocompletion: true,
+          enableEmmet: true,
+          tabSize: 2,
+          useSoftTabs: true,
+          wrap: true
+        });
+
+        // Set initial value
+        if (initialValue) {
+          window.codeEditor.setValue(initialValue, -1);
+        }
+
+        // Update mode when select changes
+        const languageSelect = document.getElementById('snippet_language');
+        if (languageSelect) {
+          languageSelect.addEventListener('change', function() {
+            const newMode = getAceMode(this.value);
+            window.codeEditor.session.setMode(newMode);
+          });
+        }
+
+        // Sync editor content with hidden input
+        const codeInput = document.getElementById(hiddenInputId);
+        if (codeInput) {
+          // Set initial value from textarea to editor
+          if (codeInput.value && !initialValue) {
+            window.codeEditor.setValue(codeInput.value, -1);
+          }
+
+          // Continuous sync: update hidden input whenever editor content changes
+          window.codeEditor.session.on('change', function() {
+            codeInput.value = window.codeEditor.getValue();
+          });
+
+          // Also sync on form submit as backup
+          const form = document.querySelector('form');
+          if (form) {
+            form.addEventListener('submit', function(e) {
+              codeInput.value = window.codeEditor.getValue();
+            });
+          }
+        }
+
+        console.log('Ace Editor initialized successfully');
+      };
+    </script>
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.description-content').forEach(function(el) {
+          el.innerHTML = marked.parse(el.textContent);
+        });
+      });
+
+      function toggleUserMenu(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('user-menu');
+        menu.classList.toggle('hidden');
+      }
+
+      // Close menu when clicking outside
+      document.addEventListener('click', function(event) {
+        const menu = document.getElementById('user-menu');
+        const button = event.target.closest('button[onclick*="toggleUserMenu"]');
+        if (!button && !menu.contains(event.target)) {
+          menu.classList.add('hidden');
+        }
+      });
+    </script>
+  </head>
+
+   <body>
+     <div class="flex">
+        <nav class="w-64 bg-gray-800 text-white p-4 fixed h-full overflow-y-auto flex flex-col">
+          <div class="mb-8">
+            <%= link_to "Code Share", root_path, class: "text-xl font-bold block" %>
+          </div>
+          <div class="space-y-2 flex-1">
+
+            <% if user_signed_in? %>
+              <%= link_to "New Snippet", new_snippet_path, class: "block py-2 px-3 rounded hover:bg-gray-700" %>
+              <%= link_to "My Bookmarks", bookmarks_path, class: "block py-2 px-3 rounded hover:bg-gray-700" %>
+              <% if current_user.admin? %>
+                <%= link_to "Admin", admin_dashboard_path, class: "block py-2 px-3 rounded hover:bg-gray-700" %>
+              <% end %>
+            <% else %>
+              <%= link_to "Sign In", new_user_session_path, class: "block py-2 px-3 rounded hover:bg-gray-700" %>
+              <%= link_to "Sign Up", new_user_registration_path, class: "block py-2 px-3 rounded hover:bg-gray-700" %>
+            <% end %>
+          </div>
+
+          <% if user_signed_in? %>
+            <div class="mt-auto border-t border-gray-700 pt-4">
+              <div class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors group cursor-pointer" onclick="window.location.href='<%= user_path(current_user) %>'">
+                <% if current_user.avatar.attached? %>
+                  <% if current_user.avatar.content_type == 'image/svg+xml' %>
+                    <div class="w-10 h-10 rounded-full border-2 border-gray-600 overflow-hidden flex-shrink-0">
+                      <object data="<%= url_for(current_user.avatar.variant(:thumb)) %>" type="image/svg+xml" class="w-full h-full"></object>
+                    </div>
+                  <% else %>
+                    <%= image_tag current_user.avatar.variant(:thumb), class: "w-10 h-10 rounded-full border-2 border-gray-600 flex-shrink-0" %>
+                  <% end %>
+                <% else %>
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center border-2 border-gray-600 flex-shrink-0">
+                    <span class="text-lg font-bold text-white"><%= current_user.name[0].upcase %></span>
+                  </div>
+                <% end %>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-white truncate"><%= current_user.name %></p>
+                  <p class="text-xs text-gray-400">View profile</p>
+                </div>
+              </div>
+              <div class="flex items-center justify-between px-3">
+                <button class="text-gray-400 hover:text-white p-1 rounded transition-colors" onclick="toggleUserMenu(event)">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <%= button_to "Sign Out", destroy_user_session_path, method: :delete, class: "text-sm text-gray-400 hover:text-white transition-colors" %>
+              </div>
+              <div id="user-menu" class="absolute bottom-16 right-4 w-48 bg-gray-700 rounded-md shadow-lg hidden z-10">
+                <%= link_to "Edit Profile", edit_user_registration_path, class: "block px-4 py-2 text-sm text-white hover:bg-gray-600 rounded-t-md" %>
+                <%= button_to "Cancel Account", registration_path(current_user), method: :delete, data: { confirm: "Are you sure you want to cancel your account?" }, class: "block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-600 rounded-b-md" %>
+              </div>
+            </div>
+          <% end %>
+        </nav>
+       <main class="ml-64 flex-1 p-5">
+         <% flash.each do |type, message| %>
+           <div class="alert alert-<%= type == 'notice' ? 'success' : 'error' %> p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg dark:bg-green-200 dark:text-green-800" role="alert">
+             <%= message %>
+           </div>
+         <% end %>
+         <%= yield %>
+       </main>
+     </div>
+   </body>
+</html>

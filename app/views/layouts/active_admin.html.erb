@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title><%= ActiveAdmin.application.site_title %></title>
+  <%= csrf_meta_tags %>
+  <%= javascript_importmap_tags %>
+</head>
+<body class="active_admin">
+  <%= yield %>
+</body>
+</html>

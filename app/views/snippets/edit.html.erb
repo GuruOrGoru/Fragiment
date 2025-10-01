@@ -1,0 +1,264 @@
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-3xl font-bold mb-6">Edit Snippet</h1>
+
+  <%= form_for @snippet, html: { multipart: true } do |f| %>
+    <div class="mb-4">
+      <%= f.label :title, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :title, class: "mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" %>
+    </div>
+
+    <div class="mb-4">
+      <%= f.label :language, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.select :language, options_for_select(['Ruby', 'JavaScript', 'Python', 'Java', 'C++', 'Go', 'Rust', 'PHP', 'HTML', 'CSS', 'SQL', 'Other'], @snippet.language), class: "mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" %>
+    </div>
+
+    <div class="mb-4">
+      <%= f.label :code, class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_area :code, id: "code-input", style: "display: none;" %>
+       <div id="code-editor-container" class="mt-1 border border-gray-300 rounded-md shadow-sm" style="height: 500px;">
+         <!-- Ace editor will replace this div -->
+       </div>
+    </div>
+
+     <div class="mb-4">
+       <%= f.label :description, class: "block text-sm font-medium text-gray-700" %>
+       <%= f.text_area :description, rows: 3, class: "mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500", id: "description-editor" %>
+     </div>
+
+    <div class="mb-4">
+      <%= f.label :tag_list, "Tags (comma separated)", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :tag_list, placeholder: "e.g. ruby, rails, web-development", class: "mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" %>
+    </div>
+
+    <div class="mb-4">
+      <%= f.label :images, "Images", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+        <%= f.file_field :images, multiple: true, accept: "image/png,image/jpeg,image/gif,image/webp", class: "hidden", id: "image-upload" %>
+        <label for="image-upload" class="cursor-pointer">
+          <div class="text-gray-500">
+            <i class="fas fa-cloud-upload-alt text-3xl mb-2"></i>
+            <p>Click to upload images or drag and drop</p>
+            <p class="text-sm">PNG, JPG, GIF up to 10MB each (max 20 images)</p>
+          </div>
+        </label>
+      </div>
+       <div id="image-previews" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2 <%= @snippet.all_images.any? ? '' : 'hidden' %>">
+         <% if @snippet.all_images.any? %>
+           <% @snippet.all_images.each do |image| %>
+             <div class="relative">
+               <% if image.content_type == 'image/svg+xml' %>
+                 <%= image_tag image, class: "w-full h-24 object-cover rounded" %>
+               <% else %>
+                 <%= image_tag image.variant(:thumb), class: "w-full h-24 object-cover rounded" %>
+               <% end %>
+               <button type="button" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs" onclick="removeExistingImage(this, <%= image.id %>)">×</button>
+             </div>
+           <% end %>
+         <% end %>
+       </div>
+    </div>
+
+    <div class="mb-4">
+      <%= f.label :video, class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+        <%= f.file_field :video, accept: "video/*", class: "hidden", id: "video-upload" %>
+        <label for="video-upload" class="cursor-pointer">
+          <div class="text-gray-500">
+            <i class="fas fa-cloud-upload-alt text-3xl mb-2"></i>
+            <p>Click to upload video or drag and drop</p>
+            <p class="text-sm">MP4, WebM, OGG up to 50MB</p>
+          </div>
+        </label>
+      </div>
+      <% if @snippet.video.attached? %>
+        <div id="video-preview" class="mt-4">
+          <p class="text-sm text-gray-600 mb-2">Current video:</p>
+          <video controls class="max-w-full h-48 rounded">
+            <%= video_tag @snippet.video, controls: true %>
+          </video>
+          <button type="button" id="remove-video" class="mt-2 text-red-500 hover:text-red-700">Remove video</button>
+        </div>
+      <% else %>
+        <div id="video-preview" class="mt-4 hidden">
+          <video id="video-preview-video" controls class="max-w-full h-48 rounded"></video>
+          <button type="button" id="remove-video" class="mt-2 text-red-500 hover:text-red-700">Remove video</button>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="flex justify-end space-x-2">
+      <%= link_to "Cancel", @snippet, class: "bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600" %>
+      <%= f.submit "Update Snippet", class: "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get the selected language and existing code
+  const languageSelect = document.getElementById('snippet_language');
+  const codeInput = document.getElementById('code-input');
+  const existingCode = codeInput ? codeInput.value : '';
+  const initialLanguage = languageSelect ? languageSelect.value : 'javascript';
+
+   // Initialize Ace Editor with existing code
+   window.initAceEditor('code-editor-container', 'code-input', existingCode, initialLanguage);
+
+   // Initialize Markdown Editor
+   new EasyMDE({ element: document.getElementById('description-editor') });
+
+    // Fallback if Ace Editor fails to load
+    setTimeout(function() {
+      if (!window.codeEditor) {
+        console.log('Ace Editor failed to load, showing textarea fallback');
+        const container = document.getElementById('code-editor-container');
+        const textarea = document.getElementById('code-input');
+
+        // Hide the container and show the textarea as fallback
+        container.style.display = 'none';
+        textarea.style.display = 'block';
+        textarea.style.width = '100%';
+        textarea.style.height = '500px';
+        textarea.style.boxSizing = 'border-box';
+        textarea.className = 'mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 font-mono';
+        textarea.placeholder = 'Enter your code here...\n\nAdvanced editor failed to load.';
+      }
+    }, 1000);
+
+  // Image upload handling
+  const imageUpload = document.getElementById('image-upload');
+  const imagePreviews = document.getElementById('image-previews');
+
+  function handleImageFiles(files) {
+    if (files.length > 20) {
+      alert('Maximum 20 images allowed');
+      return;
+    }
+    Array.from(files).forEach((file, index) => {
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const previewDiv = document.createElement('div');
+          previewDiv.className = 'relative';
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.className = 'w-full h-24 object-cover rounded';
+          const removeBtn = document.createElement('button');
+          removeBtn.type = 'button';
+          removeBtn.className = 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs';
+          removeBtn.textContent = '×';
+          removeBtn.onclick = function() {
+            previewDiv.remove();
+            // Remove from files array (but since it's input, hard to modify)
+            if (imagePreviews.querySelectorAll('.relative').length === 0) {
+              imagePreviews.classList.add('hidden');
+            }
+          };
+          previewDiv.appendChild(img);
+          previewDiv.appendChild(removeBtn);
+          imagePreviews.appendChild(previewDiv);
+          imagePreviews.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  imageUpload.addEventListener('change', function(e) {
+    const files = e.target.files;
+    handleImageFiles(files);
+  });
+
+  // Function to remove existing image
+  window.removeExistingImage = function(btn, imageId) {
+    // For now, just remove from DOM, but in reality, need to handle deletion
+    btn.parentElement.remove();
+    if (imagePreviews.querySelectorAll('.relative').length === 0) {
+      imagePreviews.classList.add('hidden');
+    }
+  }
+
+  // Video upload handling
+  const videoUpload = document.getElementById('video-upload');
+  const videoPreview = document.getElementById('video-preview');
+  const videoPreviewVideo = document.getElementById('video-preview-video');
+  const removeVideoBtn = document.getElementById('remove-video');
+
+  function handleVideoFile(file) {
+    if (file && file.type.startsWith('video/')) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        if (videoPreviewVideo) {
+          videoPreviewVideo.src = e.target.result;
+        } else {
+          // Create new video element for preview
+          const video = document.createElement('video');
+          video.id = 'video-preview-video';
+          video.className = 'max-w-full h-48 rounded';
+          video.controls = true;
+          video.src = e.target.result;
+          videoPreview.insertBefore(video, removeVideoBtn);
+        }
+        // Add file name
+        let fileNameEl = videoPreview.querySelector('.file-name');
+        if (!fileNameEl) {
+          fileNameEl = document.createElement('p');
+          fileNameEl.className = 'file-name text-sm text-gray-600 mt-2';
+          videoPreview.insertBefore(fileNameEl, removeVideoBtn);
+        }
+        fileNameEl.textContent = `File: ${file.name}`;
+        videoPreview.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  videoUpload.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    handleVideoFile(file);
+  });
+
+  if (removeVideoBtn) {
+    removeVideoBtn.addEventListener('click', function() {
+      videoUpload.value = '';
+      // If there was an existing video, we can't remove it from the server without additional logic
+      // For now, just hide the preview if it's newly uploaded
+      if (videoPreviewVideo && videoPreviewVideo.src.startsWith('data:')) {
+        videoPreview.classList.add('hidden');
+      }
+    });
+  }
+
+  // Drag and drop functionality
+  function setupDragAndDrop(dropZone, fileInput, handleFile) {
+    dropZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      dropZone.classList.add('border-blue-400', 'bg-blue-50');
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('border-blue-400', 'bg-blue-50');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('border-blue-400', 'bg-blue-50');
+
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        fileInput.files = files;
+        handleFile(files[0]);
+      }
+    });
+  }
+
+  // Setup drag and drop for image
+  const imageDropZone = document.querySelector('label[for="image-upload"]').parentElement;
+  setupDragAndDrop(imageDropZone, imageUpload, (files) => handleImageFiles(files));
+
+  // Setup drag and drop for video
+  const videoDropZone = document.querySelector('label[for="video-upload"]').parentElement;
+  setupDragAndDrop(videoDropZone, videoUpload, handleVideoFile);
+});
+</script>

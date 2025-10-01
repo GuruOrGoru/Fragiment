@@ -1,0 +1,35 @@
+<h1><%= @user.name %></h1>
+
+<div class="bg-white p-6 rounded-lg shadow">
+  <h2 class="text-xl font-semibold mb-4">User Details</h2>
+  <p><strong>ID:</strong> <%= @user.id %></p>
+  <p><strong>Name:</strong> <%= @user.name %></p>
+  <p><strong>Email:</strong> <%= @user.email %></p>
+  <p><strong>Encrypted Password:</strong> <%= @user.encrypted_password %></p>
+  <p><strong>Reset Password Token:</strong> <%= @user.reset_password_token %></p>
+  <p><strong>Reset Password Sent At:</strong> <%= @user.reset_password_sent_at %></p>
+  <p><strong>Remember Created At:</strong> <%= @user.remember_created_at %></p>
+  <p><strong>Admin:</strong> <%= @user.admin? ? 'Yes' : 'No' %></p>
+  <p><strong>Bio:</strong> <%= @user.bio %></p>
+  <p><strong>Favorite Languages:</strong> <%= @user.favorite_languages %></p>
+  <p><strong>Created at:</strong> <%= @user.created_at %></p>
+  <p><strong>Updated at:</strong> <%= @user.updated_at %></p>
+  <% if @user.avatar.attached? %>
+    <p><strong>Avatar:</strong></p>
+    <% if @user.avatar.content_type == 'image/svg+xml' %>
+      <div class="w-20 h-20 rounded-full border-2 border-gray-200 overflow-hidden">
+        <object data="<%= url_for(@user.avatar) %>" type="image/svg+xml" class="w-full h-full"></object>
+      </div>
+    <% else %>
+      <%= image_tag @user.avatar.variant(:thumb), class: "w-20 h-20 rounded-full object-cover border-2 border-gray-200" %>
+    <% end %>
+  <% else %>
+    <p><strong>Avatar:</strong> None</p>
+  <% end %>
+  <div class="mt-4">
+    <%= link_to 'Edit User', edit_admin_user_path(@user), class: "bg-green-500 text-white px-4 py-2 rounded mr-2" %>
+    <%= button_to 'Toggle Admin', toggle_admin_admin_user_path(@user), method: :post, class: "bg-blue-500 text-white px-4 py-2 rounded mr-2" %>
+    <%= button_to 'Delete User', admin_user_path(@user), method: :delete, data: { confirm: 'Are you sure you want to delete this user?' }, class: "bg-red-500 text-white px-4 py-2 rounded mr-2" %>
+    <%= link_to 'Back to Users', admin_users_path, class: "bg-gray-500 text-white px-4 py-2 rounded" %>
+  </div>
+</div>

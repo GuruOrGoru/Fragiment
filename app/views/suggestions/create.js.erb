@@ -1,0 +1,39 @@
+// Clear the suggestion form
+var suggestionForm = document.querySelector('form[action*="/suggestions"]');
+if (suggestionForm) {
+  suggestionForm.querySelector('textarea').value = '';
+  suggestionForm.querySelector('select').value = 'feature_request';
+}
+
+// Hide any visible reply forms
+document.querySelectorAll('.reply-form').forEach(function(form) {
+  form.classList.add('hidden');
+});
+
+// Update suggestion count
+document.querySelectorAll('.suggestion-count').forEach(function(span) {
+  span.textContent = 'Suggestions (<%= @snippet.suggestions.count %>)';
+});
+
+// Add the new suggestion to the suggestions section
+var suggestionsSection = document.querySelector('.suggestions-section[data-snippet-id="<%= @snippet.id %>"]');
+if (suggestionsSection) {
+  var newSuggestion = document.createElement('div');
+  newSuggestion.innerHTML = '<%= j render partial: "suggestions/suggestion", locals: { suggestion: @suggestion, snippet: @snippet } %>';
+  if (<%= @suggestion.response_to_id.present? %>) {
+    // It's a reply, find the parent and add to its responses
+    var parentSuggestion = document.querySelector('[data-suggestion-id="<%= @suggestion.response_to_id %>"]');
+    if (parentSuggestion) {
+      var responsesContainer = parentSuggestion.querySelector('.space-y-4');
+      if (responsesContainer) {
+        responsesContainer.insertBefore(newSuggestion, responsesContainer.firstChild);
+      }
+    }
+  } else {
+    // It's a top-level suggestion
+    suggestionsSection.insertBefore(newSuggestion, suggestionsSection.firstChild);
+  }
+} else {
+  // Fallback: reload the page
+  location.reload();
+}

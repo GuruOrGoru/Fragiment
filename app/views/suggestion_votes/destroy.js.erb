@@ -1,0 +1,35 @@
+// Update suggestion vote buttons
+document.querySelectorAll('[data-suggestion-id="<%= @suggestion.id %>"]').forEach(function(container) {
+  var workingBtn = container.querySelector('.fa-thumbs-up').closest('button, a');
+  var brokenBtn = container.querySelector('.fa-exclamation-triangle').closest('button, a');
+  var implementedBtn = container.querySelector('.fa-check').closest('button, a');
+  var notWorkingBtn = container.querySelector('.fa-times').closest('button, a');
+
+  if (workingBtn) {
+    workingBtn.innerHTML = '<i class="far fa-thumbs-up"></i><span> Working (<%= @suggestion.suggestion_votes.where(vote_type: 'working').count %>)</span>';
+    workingBtn.className = 'suggestion-vote-btn flex items-center space-x-1 bg-gray-100 hover:bg-blue-100 text-gray-700 hover:text-blue-700 px-3 py-1 rounded-full text-sm font-medium transition-colors';
+    workingBtn.setAttribute('data-url', '<%= snippet_suggestion_vote_working_path(@suggestion.snippet, @suggestion) %>');
+    workingBtn.setAttribute('data-method', 'post');
+  }
+
+  if (brokenBtn) {
+    brokenBtn.innerHTML = '<i class="far fa-exclamation-triangle"></i><span> Broken (<%= @suggestion.suggestion_votes.where(vote_type: 'broken').count %>)</span>';
+    brokenBtn.className = 'suggestion-vote-btn flex items-center space-x-1 bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-700 px-3 py-1 rounded-full text-sm font-medium transition-colors';
+    brokenBtn.setAttribute('data-url', '<%= snippet_suggestion_vote_broken_path(@suggestion.snippet, @suggestion) %>');
+    brokenBtn.setAttribute('data-method', 'post');
+  }
+
+  if (implementedBtn) {
+    implementedBtn.innerHTML = '<i class="far fa-check"></i><span> Implemented (<%= @suggestion.suggestion_votes.where(vote_type: 'implemented').count %>)</span>';
+    implementedBtn.className = 'suggestion-vote-btn flex items-center space-x-1 bg-gray-100 hover:bg-green-100 text-gray-700 hover:text-green-700 px-3 py-1 rounded-full text-sm font-medium transition-colors';
+    implementedBtn.setAttribute('data-url', '<%= snippet_suggestion_vote_implemented_path(@suggestion.snippet, @suggestion) %>');
+    implementedBtn.setAttribute('data-method', 'post');
+  }
+
+  if (notWorkingBtn) {
+    notWorkingBtn.innerHTML = '<i class="far fa-times"></i><span> Not Working (<%= @suggestion.suggestion_votes.where(vote_type: 'not_working').count %>)</span>';
+    notWorkingBtn.className = 'suggestion-vote-btn flex items-center space-x-1 bg-gray-100 hover:bg-red-100 text-gray-700 hover:text-red-700 px-3 py-1 rounded-full text-sm font-medium transition-colors';
+    notWorkingBtn.setAttribute('data-url', '<%= snippet_suggestion_vote_not_working_path(@suggestion.snippet, @suggestion) %>');
+    notWorkingBtn.setAttribute('data-method', 'post');
+  }
+});

@@ -1,0 +1,5 @@
+// Update the like button
+var likeButton = document.querySelector('[data-snippet-id="<%= @snippet.id %>"] [data-user-id="<%= current_user.id %>"]');
+if (likeButton) {
+  likeButton.outerHTML = '<%= j render partial: "snippets/like_button", locals: { snippet: @snippet } %>';
+}

@@ -1,0 +1,11 @@
+<% if user_signed_in? %>
+  <% if current_user.bookmarks.exists?(snippet: snippet) %>
+    <%= button_to snippet_bookmark_path(snippet), method: :delete, class: "text-blue-500 hover:text-blue-700 text-sm", remote: true, data: { snippet_id: snippet.id, user_id: current_user.id } do %>
+      <i class="fas fa-bookmark"></i> Bookmarked
+    <% end %>
+  <% else %>
+    <%= button_to snippet_bookmark_path(snippet), method: :post, class: "text-gray-500 hover:text-blue-500 text-sm", remote: true, data: { snippet_id: snippet.id, user_id: current_user.id } do %>
+      <i class="far fa-bookmark"></i> Bookmark
+    <% end %>
+  <% end %>
+<% end %>

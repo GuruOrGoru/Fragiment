@@ -1,0 +1,52 @@
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <div class="bg-white p-6 rounded-lg shadow">
+    <h3 class="text-lg font-semibold text-gray-700">Total Users</h3>
+    <p class="text-3xl font-bold text-blue-600"><%= @total_users %></p>
+    <%= link_to "Manage Users", admin_users_path, class: "text-blue-600 hover:text-blue-800 text-sm" %>
+  </div>
+  <div class="bg-white p-6 rounded-lg shadow">
+    <h3 class="text-lg font-semibold text-gray-700">Total Snippets</h3>
+    <p class="text-3xl font-bold text-green-600"><%= @total_snippets %></p>
+    <%= link_to "Manage Snippets", admin_snippets_path, class: "text-green-600 hover:text-green-800 text-sm" %>
+  </div>
+  <div class="bg-white p-6 rounded-lg shadow">
+    <h3 class="text-lg font-semibold text-gray-700">Active Admins</h3>
+    <p class="text-3xl font-bold text-red-600"><%= User.where(admin: true).count %></p>
+  </div>
+  <div class="bg-white p-6 rounded-lg shadow">
+    <h3 class="text-lg font-semibold text-gray-700">System Status</h3>
+    <p class="text-xl font-bold text-green-600">Online</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-white p-6 rounded-lg shadow">
+    <h3 class="text-lg font-semibold text-gray-700 mb-4">Recent Snippets</h3>
+    <div class="space-y-2">
+      <% @recent_snippets.each do |snippet| %>
+        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <div>
+            <p class="font-medium"><%= snippet.title %></p>
+            <p class="text-sm text-gray-600">by <%= snippet.user.name %> • <%= time_ago_in_words(snippet.created_at) %> ago</p>
+          </div>
+          <%= link_to "View", snippet_path(snippet), class: "text-blue-600 hover:text-blue-800" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="bg-white p-6 rounded-lg shadow">
+    <h3 class="text-lg font-semibold text-gray-700 mb-4">Recent Users</h3>
+    <div class="space-y-2">
+      <% @recent_users.each do |user| %>
+        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <div>
+            <p class="font-medium"><%= user.name %></p>
+            <p class="text-sm text-gray-600"><%= user.email %> • <%= time_ago_in_words(user.created_at) %> ago</p>
+          </div>
+          <%= link_to "View Profile", user_path(user), class: "text-blue-600 hover:text-blue-800" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

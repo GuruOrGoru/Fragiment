@@ -1,0 +1,13 @@
+<% if user_signed_in? %>
+  <% if current_user.likes.exists?(snippet: snippet) %>
+    <button class="like-btn text-red-500 hover:text-red-700 text-sm" data-snippet-id="<%= snippet.id %>" data-liked="true" data-url="<%= snippet_like_path(snippet) %>" data-method="delete">
+      <i class="fas fa-heart"></i> (<%= snippet.likes.count %>)
+    </button>
+  <% else %>
+    <button class="like-btn text-gray-500 hover:text-red-500 text-sm" data-snippet-id="<%= snippet.id %>" data-liked="false" data-url="<%= snippet_like_path(snippet) %>" data-method="post">
+      <i class="far fa-heart"></i> (<%= snippet.likes.count %>)
+    </button>
+  <% end %>
+<% else %>
+  <span class="text-gray-500 text-sm"><i class="far fa-heart"></i> (<%= snippet.likes.count %>)</span>
+<% end %>

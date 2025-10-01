@@ -1,0 +1,5 @@
+// Update the bookmark button
+var bookmarkButton = document.querySelector('[data-snippet-id="<%= @snippet.id %>"] [data-user-id="<%= current_user.id %>"] .fa-bookmark').closest('button, form');
+if (bookmarkButton) {
+  bookmarkButton.outerHTML = '<%= j render partial: "snippets/bookmark_button", locals: { snippet: @snippet } %>';
+}

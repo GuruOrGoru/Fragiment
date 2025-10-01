@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin - Code Share</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+  <%= javascript_importmap_tags %>
+</head>
+<body class="bg-gray-100">
+  <nav class="bg-red-600 text-white p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">Admin Panel</h1>
+      <div>
+        <%= link_to "Dashboard", admin_dashboard_path, class: "mr-4" %>
+        <%= link_to "Users", admin_users_path, class: "mr-4" %>
+        <%= link_to "Back to Site", root_path, class: "mr-4" %>
+        <%= button_to "Logout", destroy_user_session_path, method: :delete, class: "bg-red-700 px-3 py-1 rounded" %>
+      </div>
+    </div>
+  </nav>
+  <main class="container mx-auto mt-8 px-4">
+    <% flash.each do |type, message| %>
+      <div class="alert alert-<%= type == 'notice' ? 'success' : 'error' %> p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg dark:bg-green-200 dark:text-green-800" role="alert">
+        <%= message %>
+      </div>
+    <% end %>
+    <%= yield %>
+  </main>
+</body>
+</html>

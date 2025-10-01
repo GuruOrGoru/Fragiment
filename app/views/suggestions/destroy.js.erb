@@ -1,0 +1,10 @@
+// Remove the suggestion from the DOM
+var suggestionElement = document.querySelector('[data-suggestion-id="<%= @suggestion.id %>"]');
+if (suggestionElement) {
+  suggestionElement.remove();
+}
+
+// Update suggestion count
+document.querySelectorAll('.suggestion-count').forEach(function(span) {
+  span.textContent = 'Suggestions (<%= @snippet.suggestions.count %>)';
+});

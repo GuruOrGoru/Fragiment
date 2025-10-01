@@ -1,0 +1,200 @@
+<div class="max-w-4xl mx-auto">
+  <h1 class="text-3xl font-bold mb-8">My Bookmarks</h1>
+
+  <% if @bookmarks.any? %>
+    <div class="space-y-6">
+      <% @bookmarks.each do |bookmark| %>
+        <% snippet = bookmark.snippet %>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <div class="flex space-x-4">
+            <div class="flex-shrink-0">
+              <% if snippet.user.avatar.attached? %>
+                <% if snippet.user.avatar.content_type == 'image/svg+xml' %>
+                  <%= link_to user_path(snippet.user), class: "block" do %>
+                    <div class="w-12 h-12 rounded-full overflow-hidden">
+                      <object data="<%= url_for(snippet.user.avatar) %>" type="image/svg+xml" class="w-full h-full"></object>
+                    </div>
+                  <% end %>
+                <% else %>
+                  <%= link_to user_path(snippet.user), class: "block" do %>
+                    <%= image_tag snippet.user.avatar.variant(:thumb), class: "w-12 h-12 rounded-full object-cover" %>
+                  <% end %>
+                <% end %>
+              <% else %>
+                <%= link_to user_path(snippet.user), class: "block" do %>
+                  <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                    <span class="text-lg font-medium text-gray-700"><%= snippet.user.name[0].upcase %></span>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h2 class="text-xl font-semibold mb-1"><%= link_to snippet.title, snippet %></h2>
+                  <p class="text-gray-600 text-sm">By <%= link_to snippet.user.name, user_path(snippet.user), class: "hover:text-blue-600" %> • <%= snippet.language %></p>
+                  <% if snippet.tags.any? %>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <% snippet.tags.each do |tag| %>
+                        <span class="inline-block bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded"><%= tag.name %></span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+              <div class="flex items-center space-x-4 text-sm text-gray-500">
+                <span><%= snippet.suggestions.count %> suggestions</span>
+                <span class="text-xs">Bookmarked <%= time_ago_in_words(bookmark.created_at) %> ago</span>
+              </div>
+            </div>
+          </div>
+          <% if snippet.description.present? %>
+            <div class="prose mb-4 description-content"><%= snippet.description.truncate(150) %></div>
+          <% end %>
+          <div class="mb-4 max-w-2xl">
+            <div class="bg-gray-800 rounded-t-lg p-3 flex items-center">
+              <div class="flex space-x-2">
+                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+              </div>
+              <div class="flex-1 text-center text-white text-sm"><%= snippet.language %></div>
+            </div>
+            <div class="bg-gray-900 p-4 rounded-b-lg h-60 overflow-hidden relative">
+              <button class="absolute top-2 right-2 text-gray-400 hover:text-white copy-btn z-10" data-code="<%= snippet.code.truncate(300) %>" title="Copy code">
+                <i class="fas fa-copy"></i>
+              </button>
+              <div class="relative">
+                <pre class="syntax-highlight"><code><%= format_code(snippet.code.truncate(300), snippet.language).html_safe %></code></pre>
+                <% if snippet.code.length > 300 %>
+                  <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent p-4 pt-8">
+                    <%= link_to "...view more", snippet, class: "text-blue-400 hover:text-blue-300 text-sm font-medium" %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+          <% if snippet.all_images.any? %>
+            <div class="mb-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              <% snippet.all_images.each do |image| %>
+                <% if image.content_type == 'image/svg+xml' %>
+                  <%= image_tag image, class: "w-full h-32 object-contain rounded cursor-pointer", onclick: "openImageModal('#{image.url}')" %>
+                <% else %>
+                  <%= image_tag image.variant(:thumb), class: "w-full h-32 object-cover rounded cursor-pointer", onclick: "openImageModal('#{image.url}')" %>
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+          <% if snippet.video.attached? %>
+            <div class="mb-4">
+              <video controls class="w-full max-w-lg rounded-lg shadow-md">
+                <%= video_tag snippet.video, controls: true %>
+              </video>
+            </div>
+          <% end %>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4 text-sm text-gray-500">
+              <%= render partial: "snippets/snippet_vote_buttons", locals: { snippet: snippet } %>
+              <%= link_to "#{snippet.suggestions.count} suggestions", snippet, class: "hover:text-blue-600" %>
+              <button class="text-gray-500 hover:text-blue-500 share-btn" data-url="<%= snippet_url(snippet) %>">
+                <i class="fas fa-share"></i> Share
+              </button>
+            </div>
+            <div class="flex items-center space-x-2">
+              <%= render partial: "snippets/bookmark_button", locals: { snippet: snippet } %>
+              <%= link_to "View", snippet, class: "text-blue-500 hover:text-blue-700 text-sm" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-12">
+      <i class="far fa-bookmark text-6xl text-gray-300 mb-4"></i>
+      <h2 class="text-2xl font-semibold text-gray-600 mb-2">No bookmarks yet</h2>
+      <p class="text-gray-500 mb-6">Start exploring and bookmark snippets you want to save for later!</p>
+      <%= link_to "Browse Snippets", snippets_path, class: "bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600" %>
+    </div>
+  <% end %>
+</div>
+
+<!-- Image Modal -->
+<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center" onclick="closeImageModal()">
+  <div class="max-w-4xl max-h-full p-4">
+    <img id="modal-image" class="max-w-full max-h-full object-contain" />
+    <button class="absolute top-4 right-4 text-white text-2xl" onclick="closeImageModal()">&times;</button>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle copy buttons
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const code = this.dataset.code;
+      navigator.clipboard.writeText(code).then(function() {
+        // Show temporary feedback
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        btn.classList.add('text-green-500');
+        setTimeout(function() {
+          btn.innerHTML = originalHTML;
+          btn.classList.remove('text-green-500');
+        }, 2000);
+      });
+    });
+  });
+
+  // Handle share buttons
+  document.querySelectorAll('.share-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const url = this.dataset.url;
+      navigator.clipboard.writeText(url).then(function() {
+        // Show temporary feedback
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        btn.classList.add('text-green-500');
+        setTimeout(function() {
+          btn.innerHTML = originalText;
+          btn.classList.remove('text-green-500');
+        }, 2000);
+      });
+    });
+  });
+
+  // Handle snippet vote buttons
+  document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('snippet-vote-btn') || event.target.closest('.snippet-vote-btn')) {
+      const btn = event.target.classList.contains('snippet-vote-btn') ? event.target : event.target.closest('.snippet-vote-btn');
+      event.preventDefault();
+      const url = btn.dataset.url;
+      const method = btn.dataset.method;
+      const snippetId = btn.dataset.snippetId;
+      fetch(url, {
+        method: method,
+        headers: {
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Accept': 'text/javascript, application/javascript'
+        }
+      })
+      .then(response => response.text())
+      .then(script => {
+        // Execute the JavaScript response
+        eval(script);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }
+  });
+
+  // Image modal functions
+  window.openImageModal = function(imageUrl) {
+    document.getElementById('modal-image').src = imageUrl;
+    document.getElementById('image-modal').classList.remove('hidden');
+  };
+  window.closeImageModal = function() {
+    document.getElementById('image-modal').classList.add('hidden');
+  };
+});
+</script>
